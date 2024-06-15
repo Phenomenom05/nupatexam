@@ -87,6 +87,21 @@ TEMPLATES = [
     },
 ]
 
+# settings.py
+
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.example.com'  # Your SMTP host
+EMAIL_PORT = 587  # Your SMTP port
+EMAIL_HOST_USER = 'phedave05@gmail.com'  # Your email address
+EMAIL_HOST_PASSWORD = 'gzju carl ccex sqsu'  # Your email password
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'abolarin.david@lmu.edu.n'  # Your default email address
+
+
+
+
+
 WSGI_APPLICATION = 'NExam.wsgi.application'
 
 

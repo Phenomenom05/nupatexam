@@ -14,6 +14,13 @@ class SerializerExam(serializers.ModelSerializer):
         model = Exam
         fields = ["name"]
 
+class SerializerTheory(serializers.ModelSerializer):
+    class Meta:
+        model = TheoryQuestion
+        fields = ["question"]
+        
+
+
 class SerializerCreateAccount(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)

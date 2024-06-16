@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +63,7 @@ REST_FRAMEWORK = {
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = True
+
 ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com','127.0.0.1']
 
 
@@ -94,7 +95,7 @@ EMAIL_PORT = 587  # Your SMTP port
 EMAIL_HOST_USER = 'phedave05@gmail.com'  # Your email address
 EMAIL_HOST_PASSWORD = 'gzju carl ccex sqsu'  # Your email password
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'abolarin.david@lmu.edu.n'  # Your default email address
+DEFAULT_FROM_EMAIL = 'phedave05@gmail.com'  # Your default email address
 
 
 

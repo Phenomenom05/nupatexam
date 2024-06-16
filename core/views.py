@@ -166,7 +166,7 @@ def StartExam(request):
         request.session['uniqueName'] = name_of_user
         request.session['score'] = 0
         request.session['theory_questions_answered'] = []
-        return Response({"code": code, "userName": name_of_user}, status=status.HTTP_200_OK)
+        return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
 
 @api_view(['POST'])

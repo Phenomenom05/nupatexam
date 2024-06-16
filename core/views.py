@@ -117,7 +117,7 @@ def GetObJQuestions(request, code):
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
-                'id': question.id,
+                'id': str(question.id),
                 'question': question.question,
                 'option1': options[0],
                 'option2': options[1],

@@ -124,8 +124,11 @@ def GetObJQuestions(request, code):
                 'option3': options[2],
                 'answer': options[3],
             }
-            serializer = SerializerQuestion(shuffled_question)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer = SerializerQuestion(data=shuffled_question)  # Use data argument to pass dictionary
+            if serializer.is_valid():
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     return redirect("get-theoryquestion", code=code)
 
@@ -134,14 +137,23 @@ def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
 
+    # Get the list of theory questions already answered
     question_answered_theory = request.session.get('question_answered_theory', [])
+    
+    # Find the first unanswered question
+    next_question = None
     for question in questiontheory:
         if question.id not in question_answered_theory:
-            question_answered_theory.append(question.id)
-            request.session['question_answered_theory'] = question_answered_theory
+            next_question = question
+            break
 
-            serializer = SerializerTheory(question)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    if next_question:
+        # If there's a next question, serialize it and return
+        serializer = SerializerTheory(instance=next_question)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        # If all questions are answered, redirect to submit
+        return redirect("submit_answer_exam", code=code)
     
     return redirect("submit_answer_exam", code=code)
 

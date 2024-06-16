@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class SerializerQuestion(serializers.ModelSerializer):
     class Meta:
         model = QuestionModel
-        fields = ["question", "option1", "option2", "option3", "answer"]
+        fields = ["id", "question", "option1", "option2", "option3", "answer"]
 
 
 class SerializerExam(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class SerializerExam(serializers.ModelSerializer):
 class SerializerTheory(serializers.ModelSerializer):
     class Meta:
         model = TheoryQuestion
-        fields = ["question"]
+        fields ='__all__'
         
 
 

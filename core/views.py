@@ -1,6 +1,7 @@
 from rest_framework.generics import CreateAPIView
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from rest_framework.response import Response
+from django.http import JsonResponse
 from rest_framework import status
 from django.shortcuts import redirect, get_object_or_404
 from rest_framework.decorators import api_view

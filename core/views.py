@@ -110,8 +110,8 @@ def GetObJQuestions(request, code):
 
     question_answered_obj = request.session.get('question_answered_obj', [])
     for question in questionobj:
-        if question.id not in question_answered_obj:
-            question_answered_obj.append(question.id)
+        if str(question.id) not in question_answered_obj:
+            question_answered_obj.append(str(question.id))
             request.session['question_answered_obj'] = question_answered_obj
 
             options = [question.option1, question.option2, question.option3, question.answer]
@@ -143,8 +143,9 @@ def GetTheoryQuestions(request, code):
     # Find the first unanswered question
     next_question = None
     for question in questiontheory:
-        if question.id not in question_answered_theory:
+        if str(question.id) not in question_answered_theory:
             next_question = question
+            question_answered_theory.append(str(question.id))
             break
 
     if next_question:

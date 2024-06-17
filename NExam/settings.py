@@ -60,10 +60,13 @@ REST_FRAMEWORK = {
 }
 
 
+CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
     'http://localhost:5173',
     'http://192.168.8.101:5173',  # Your friend's local IP address
     'http://davidphenom.pythonanywhere.com',

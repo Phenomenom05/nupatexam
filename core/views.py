@@ -105,14 +105,14 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
-question_answered_obj = []
+question_answered_ob = []
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
  
     for question in questionobj:
-        if str(question.id) not in question_answered_obj:
+        if str(question.id) not in question_answered_ob:
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
@@ -125,7 +125,7 @@ def GetObJQuestions(request, code):
             }
             serializer = SerializerQuestion(data=shuffled_question)
               # Use data argument to pass dictionary
-            question_answered_obj.append(str(question.id))
+            question_answered_ob.append(str(question.id))
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -135,7 +135,7 @@ def GetObJQuestions(request, code):
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 
-question_answered_theory = []
+question_answered_theor = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
@@ -145,10 +145,10 @@ def GetTheoryQuestions(request, code):
     # Ensure it's initialized and accessible across requests
 
     next_question = None
-    for question in questiontheory:
+    for question in questiontheor:
         if str(question.id) not in question_answered_theory:
             next_question = question
-            question_answered_theory.append(str(question.id))
+            question_answered_theor.append(str(question.id))
             break
 
     if next_question:
@@ -174,7 +174,7 @@ def ProceedExam(request, code):
     if request.method == "POST":
         return redirect("get-objquestion", code=code)
 
-Scor = []
+Score = []
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     if request.method == "POST":
@@ -186,10 +186,10 @@ def AnswerObJQuestion(request, pk):
         code = obj_question.owner.code
         option_picked = request.data.get("picked")
         if option_picked == obj_question.answer:
-            Scor.append("correct")
+            Score.append("correct")
         return redirect("get-objquestion", code=code)
 
-theory_questions_answered = []
+theory_questions_answere = []
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     if request.method == "POST":
@@ -199,20 +199,24 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        theory_questions_answered.append(answer)
+        theory_questions_answere.append(answer)
         facilitator_email = theory_question.owner.owner.email
 
         return redirect("get-theoryquestion", code=code)
 
 @api_view(['POST'])
 def submit_answer_exam(request, code):
-    score = len(Scor)
-    exam = get_object_or_404(Exam, code=code)
-    email = exam.owner.email
-    uniqueName = request.session['uniqueName']
-    subject = f"{uniqueName} has finished their exam!"
-    message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answered}"
-    sender_email = "phedave05@gmail.com"
-    send_mail(subject, message, sender_email, [email])
+    if request.method == "POST":
+        score = len(Score)
+        exam = get_object_or_404(Exam, code=code)
+        email = exam.owner.email
+        uniqueName = request.session['uniqueName']
+        subject = f"{uniqueName} has finished their exam!"
+        message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answere}"
+        sender_email = "phedave05@gmail.com"
+        send_mail(subject, message, sender_email, [email])
+        
+        return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     
-    return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"error": "Method Not Allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

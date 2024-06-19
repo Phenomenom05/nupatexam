@@ -105,12 +105,13 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
+question_answered_obj = []
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
 
-    question_answered_obj = request.session.get('question_answered_obj', [])
+ 
     for question in questionobj:
         if str(question.id) not in question_answered_obj:
             question_answered_obj.append(str(question.id))
@@ -132,13 +133,13 @@ def GetObJQuestions(request, code):
     
     return redirect("get-theoryquestion", code=code)
 
+question_answered_theory = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
 
     # Get the list of theory questions already answered
-    question_answered_theory = request.session.get('question_answered_theory', [])
     
     # Find the first unanswered question
     next_question = None
@@ -164,8 +165,6 @@ def StartExam(request):
         name_of_user = request.data.get("name")
         code = request.data.get("code")
         request.session['uniqueName'] = name_of_user
-        request.session['score'] = 0
-        request.session['theory_questions_answered'] = []
         return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
 
@@ -174,7 +173,7 @@ def ProceedExam(request, code):
     if request.method == "POST":
         return redirect("get-objquestion", code=code)
 
-
+Score = []
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     if request.method == "POST":
@@ -186,9 +185,10 @@ def AnswerObJQuestion(request, pk):
         code = obj_question.owner.code
         option_picked = request.data.get("picked")
         if option_picked == obj_question.answer:
-            request.session['score'] += 1
+            Score.append("correct")
         return redirect("get-objquestion", code=code)
 
+theory_questions_answered = []
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     if request.method == "POST":
@@ -198,19 +198,18 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        request.session['theory_questions_answered'].append(answer)
+        theory_questions_answered.append(answer)
         facilitator_email = theory_question.owner.owner.email
 
         return redirect("get-theoryquestion", code=code)
 
 @api_view(['POST'])
 def submit_answer_exam(request, code):
-    score = request.session['score']
+    score = len(score)
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
     uniqueName = request.session['uniqueName']
-    theory_questions_answered = request.session['theory_questions_answered']
-
+    theory_questions_answered = theory_questions_answered 
     subject = f"{uniqueName} has finished their exam!"
     message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answered}"
     sender_email = "phedave05@gmail.com"

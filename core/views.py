@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from random import shuffle
+import uuid
 
 User = get_user_model()
 
@@ -179,6 +180,7 @@ def ProceedExam(request, code):
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     if request.method == "POST":
+        pk = uuid.UUID(pk)
         obj_question = get_object_or_404(QuestionModel, id=pk)
         code = obj_question.owner.code
         option_picked = request.data.get("picked")

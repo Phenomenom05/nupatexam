@@ -105,16 +105,14 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
-question_answered_ob = []
+question_answered_obj = []
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
-
  
     for question in questionobj:
-        if str(question.id) not in question_answered_ob:
-            question_answered_ob.append(str(question.id))
+        if str(question.id) not in question_answered_obj:
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
@@ -125,16 +123,19 @@ def GetObJQuestions(request, code):
                 'option3': options[2],
                 'answer': options[3],
             }
-            serializer = SerializerQuestion(data=shuffled_question)  # Use data argument to pass dictionary
+            serializer = SerializerQuestion(data=shuffled_question)
+              # Use data argument to pass dictionary
+            question_answered_obj.append(str(question.id))
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+           
     
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 
-question_answered_theor = []
+question_answered_theory = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
@@ -145,9 +146,9 @@ def GetTheoryQuestions(request, code):
     # Find the first unanswered question
     next_question = None
     for question in questiontheory:
-        if str(question.id) not in question_answered_theor:
+        if str(question.id) not in question_answered_theory:
             next_question = question
-            question_answered_theor.append(str(question.id))
+            question_answered_theory.append(str(question.id))
             break
 
     if next_question:
@@ -158,7 +159,6 @@ def GetTheoryQuestions(request, code):
         # If all questions are answered, redirect to submit
         return redirect("submit_answer_exam", code=code)
     
-    return redirect("submit_answer_exam", code=code)
 
 @api_view(['POST'])
 def StartExam(request):
@@ -189,7 +189,7 @@ def AnswerObJQuestion(request, pk):
             Score.append("correct")
         return redirect("get-objquestion", code=code)
 
-theory_questions_answere = []
+theory_questions_answered = []
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     if request.method == "POST":
@@ -199,7 +199,7 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        theory_questions_answere.append(answer)
+        theory_questions_answered.append(answer)
         facilitator_email = theory_question.owner.owner.email
 
         return redirect("get-theoryquestion", code=code)
@@ -210,7 +210,6 @@ def submit_answer_exam(request, code):
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
     uniqueName = request.session['uniqueName']
-    theory_questions_answered = theory_questions_answered 
     subject = f"{uniqueName} has finished their exam!"
     message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answered}"
     sender_email = "phedave05@gmail.com"

@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
-from django.shortcuts import redirect, get_object_or_404, HttpResponseBadRequest
+from django.shortcuts import redirect, get_object_or_404, HttpResponse
 from rest_framework.decorators import api_view
 from .models import QuestionModel, Exam, Profile, TheoryQuestion
 from .serializers import SerializerQuestion, SerializerExam, SerializerCreateAccount, SerializerTheory
@@ -183,7 +183,7 @@ def AnswerObJQuestion(request, pk):
         try:
             uuid_obj = uuid.UUID(pk, version=4)
         except ValueError:
-            return HttpResponseBadRequest("Invalid UUID format")
+            return HttpResponse("Invalid UUID format")
         obj_question = get_object_or_404(QuestionModel, id=uuid_obj)
         code = obj_question.owner.code
         option_picked = request.data.get("picked")

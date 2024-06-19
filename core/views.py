@@ -131,8 +131,9 @@ def GetObJQuestions(request, code):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    return redirect("get-theoryquestion", code=code)
+    return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
+    
 question_answered_theory = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):

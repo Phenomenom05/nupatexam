@@ -15,7 +15,7 @@ urlpatterns = [
     path("answer-objquestion/<str:pk>/", AnswerObJQuestion, name="answer-objquestion"),
     path("answer-theoryquestion/<str:pk>/", AnswerTheoryQuestion, name="answer-theoryquestion"),
     path("submit-exam/<str:exam_id>/", submit_exam, name="submit-exam"),
-    path("submit-answer-exam/<str:pk>/", submit_answer_exam, name="submit_answer_exam"),
+    path("submit-answer-exam/<str:code>/", submit_answer_exam, name="submit_answer_exam"),
     path("proceed-exam/<str:code>/", ProceedExam, name="proceed-exam")
 
 

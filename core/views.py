@@ -105,7 +105,7 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
-question_answered_obj = []
+question_answered_ob = []
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
@@ -113,8 +113,8 @@ def GetObJQuestions(request, code):
 
  
     for question in questionobj:
-        if str(question.id) not in question_answered_obj:
-            question_answered_obj.append(str(question.id))
+        if str(question.id) not in question_answered_ob:
+            question_answered_ob.append(str(question.id))
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
@@ -133,8 +133,8 @@ def GetObJQuestions(request, code):
     
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
-    
-question_answered_theory = []
+
+question_answered_theor = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
@@ -145,9 +145,9 @@ def GetTheoryQuestions(request, code):
     # Find the first unanswered question
     next_question = None
     for question in questiontheory:
-        if str(question.id) not in question_answered_theory:
+        if str(question.id) not in question_answered_theor:
             next_question = question
-            question_answered_theory.append(str(question.id))
+            question_answered_theor.append(str(question.id))
             break
 
     if next_question:
@@ -189,7 +189,7 @@ def AnswerObJQuestion(request, pk):
             Score.append("correct")
         return redirect("get-objquestion", code=code)
 
-theory_questions_answered = []
+theory_questions_answere = []
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     if request.method == "POST":
@@ -199,7 +199,7 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        theory_questions_answered.append(answer)
+        theory_questions_answere.append(answer)
         facilitator_email = theory_question.owner.owner.email
 
         return redirect("get-theoryquestion", code=code)

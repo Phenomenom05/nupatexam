@@ -114,8 +114,6 @@ def GetObJQuestions(request, code):
     for question in questionobj:
         if str(question.id) not in question_answered_obj:
             question_answered_obj.append(str(question.id))
-            request.session['question_answered_obj'] = question_answered_obj
-
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {

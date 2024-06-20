@@ -98,7 +98,7 @@ TEMPLATES = [
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.example.com'  # Your SMTP host
+EMAIL_HOST = 'smtp.gmail.com'  # Your SMTP host
 EMAIL_PORT = 587  # Your SMTP port
 EMAIL_HOST_USER = 'phedave05@gmail.com'  # Your email address
 EMAIL_HOST_PASSWORD = 'gzju carl ccex sqsu'  # Your email password

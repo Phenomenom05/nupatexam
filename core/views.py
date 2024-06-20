@@ -15,7 +15,7 @@ import uuid
 
 User = get_user_model()
 
-class CheckView(CreateAPIView):
+class CheckView(CreateAPIView): 
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
 
@@ -156,8 +156,9 @@ def GetTheoryQuestions(request, code):
         serializer = SerializerTheory(instance=next_question)
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
-        # If all questions are answered, redirect to submit
-        return redirect("submit_answer_exam", code=code)
+        return Response({"detail": "All questions answered"}, status=status.HTTP_200_OK)
+
+
     
 
 @api_view(['POST'])
@@ -214,7 +215,7 @@ def submit_answer_exam(request, code):
         subject = f"{uniqueName} has finished their exam!"
         message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answered}"
         sender_email = "phedave05@gmail.com"
-        send_mail(subject, message, sender_email, [email])
+        send_mail(subject, message, sender_email, [email], fail_silently=False)
         
         return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

@@ -176,7 +176,7 @@ def ProceedExam(request, code):
     if request.method == "POST":
         return redirect("get-objquestion", code=code)
 
-Score = []
+Scor = []
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     if request.method == "POST":
@@ -189,7 +189,7 @@ def AnswerObJQuestion(request, pk):
         option_picked = request.data.get("picked")
         correct_answer = obj_question.answer
         if option_picked == correct_answer:
-            Score.append("correct")
+            Scor.append("correct")
 
         return redirect("get-objquestion", code=code)
 
@@ -210,7 +210,7 @@ def AnswerTheoryQuestion(request, pk):
 
 @api_view(['POST'])
 def submit_answer_exam(request, code):
-    score = len(Score)
+    score = len(Scor)
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
     uniqueName = Name[0]

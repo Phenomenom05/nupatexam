@@ -188,7 +188,10 @@ def AnswerObJQuestion(request, pk):
         code = obj_question.owner.code
         option_picked = request.data.get("picked")
         if option_picked == obj_question.answer:
+            print("working")
             Score.append("correct")
+        else:
+            print("issue")
         return redirect("get-objquestion", code=code)
 
 theory_questions_answered = []

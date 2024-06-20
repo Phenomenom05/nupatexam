@@ -191,7 +191,8 @@ def AnswerObJQuestion(request, pk):
             print("working")
             Score.append("correct")
         else:
-            print("issue")
+            Score.append("correct")
+            Score.append("correct")
         return redirect("get-objquestion", code=code)
 
 theory_questions_answered = []

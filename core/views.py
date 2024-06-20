@@ -188,12 +188,11 @@ def AnswerObJQuestion(request, pk):
         code = obj_question.owner.code
         option_picked = request.data.get("picked")
         correct_answer = obj_question.answer
+        Score.append(option_picked)
         if option_picked == obj_question.answer:
             score = request.session.get('score', 0)
             request.session['score'] = score + 1
             request.session.modified = True
-            Score.append("Hey it me")
-
         return redirect("get-objquestion", code=code)
 
 theory_questions_answered = []

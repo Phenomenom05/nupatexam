@@ -105,14 +105,14 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
-question_answered_obj = []
+question_answered_ob = []
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
  
     for question in questionobj:
-        if str(question.id) not in question_answered_obj:
+        if str(question.id) not in question_answered_ob:
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
@@ -125,7 +125,7 @@ def GetObJQuestions(request, code):
             }
             serializer = SerializerQuestion(data=shuffled_question)
               # Use data argument to pass dictionary
-            question_answered_obj.append(str(question.id))
+            question_answered_ob.append(str(question.id))
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -135,7 +135,7 @@ def GetObJQuestions(request, code):
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 
-question_answered_theory = []
+question_answered_theor = []
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
@@ -146,9 +146,9 @@ def GetTheoryQuestions(request, code):
 
     next_question = None
     for question in questiontheory:
-        if str(question.id) not in question_answered_theory:
+        if str(question.id) not in question_answered_theor:
             next_question = question
-            question_answered_theory.append(str(question.id))
+            question_answered_theor.append(str(question.id))
             break
 
     if next_question:
@@ -161,13 +161,13 @@ def GetTheoryQuestions(request, code):
 
 
 
-Name = []
+Nam = []
 @api_view(['POST'])
 def StartExam(request):
     if request.method == "POST":
         name_of_user = request.data.get("name")
         code = request.data.get("code")
-        Name.append(name_of_user)
+        Nam.append(name_of_user)
         return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
 
@@ -193,7 +193,7 @@ def AnswerObJQuestion(request, pk):
             request.session.modified = True
         return redirect("get-objquestion", code=code)
 
-theory_questions_answered = []
+theory_questions_answere = []
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     if request.method == "POST":
@@ -203,7 +203,7 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        theory_questions_answered.append(answer)
+        theory_questions_answere.append(answer)
         facilitator_email = theory_question.owner.owner.email
 
         return redirect("get-theoryquestion", code=code)
@@ -213,9 +213,9 @@ def submit_answer_exam(request, code):
     score = request.session.get('score', 0)
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
-    uniqueName = Name[0]
+    uniqueName = Nam[0]
     subject = f"{uniqueName} has finished their exam!"
-    message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answered}"
+    message = f"The score is {score}. Here are the theory questions and answers: {theory_questions_answere}"
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
         

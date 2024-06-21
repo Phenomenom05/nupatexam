@@ -169,6 +169,11 @@ def StartExam(request):
     name_of_user = request.data.get("name")
     code = request.data.get("code")
     request.session['name'] = name_of_user
+    request.session['score'] = 0
+    request.session['question_answered_obj'] = []
+    request.session['question_answered_theory'] = []
+    request.session['theory_questions_answered'] = []
+    
     request.session.modified = True
     return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
@@ -228,11 +233,7 @@ def submit_answer_exam(request, code):
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 
     # Clear session data for this user
-    request.session['score'] = 0
-    request.session['question_answered_obj'] = []
-    request.session['question_answered_theory'] = []
-    request.session['theory_questions_answered'] = []
-    request.session['name'] = ''
-    
+    request.session.flush()
+
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

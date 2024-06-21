@@ -105,19 +105,17 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
+userDict = {}
 
 @api_view(['GET'])
-def GetObJQuestions(request, code):
+def GetObJQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
+    objList = userDict[userName]['objList']
     
-    if 'question_answered_obj' not in request.session:
-        request.session['question_answered_obj'] = []
-
-    question_answered_obj = request.session['question_answered_obj']
 
     for question in questionobj:
-        if str(question.id) not in question_answered_obj:
+        if str(question.id) not in objList:
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
@@ -131,36 +129,27 @@ def GetObJQuestions(request, code):
 
             # Serialize and return the shuffled question
             serializer = SerializerQuestion(data=shuffled_question)
+            objList.append(str(question.id))
             if serializer.is_valid():
-                question_answered_obj.append(str(question.id))
-                request.session['question_answered_obj'] = question_answered_obj
-                request.session.modified = True
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
-
-
 @api_view(['GET'])
-def GetTheoryQuestions(request, code):
+def GetTheoryQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
-    if 'question_answered_theory' not in request.session:
-        request.session['question_answered_theory'] = []
-
-    question_answered_theory = request.session['question_answered_theory']
+    theoryList =  userDict[userName]['theoryList']
     # Assuming question_answered_theor is stored somewhere (session, database, etc.)
     # Ensure it's initialized and accessible across requests
 
     next_question = None
     for question in questiontheory:
-         if str(question.id) not in question_answered_theory:
+         if str(question.id) not in theoryList:
             next_question = question
-            question_answered_theory.append(str(question.id))
-            request.session['question_answered_theory'] = question_answered_theory
-            request.session.modified = True
+            theoryList.append(str(question.id))
             break
 
     if next_question:
@@ -174,21 +163,36 @@ def GetTheoryQuestions(request, code):
 
 
 
+Name = ''
+
 @api_view(['POST'])
 def StartExam(request):
     name_of_user = request.data.get("name")
     code = request.data.get("code")
-    request.session['name'] = name_of_user
-    return JsonResponse({"code": code, "userName": name_of_user}, status=200)
+    userName = name_of_user
+    addUser = {
+        userName:{
+            'objList': [],
+            'theoryList': [],
+            'theoryAnsweredList': [],
+            "name": userName,
+            'score': []
+        }
+    }
+    userDict.update(addUser)
+    return JsonResponse({"code": code, "userName": userName}, status=200)
 
 
 @api_view(['POST'])
-def ProceedExam(request, code):
-    return redirect("get-objquestion", code=code)
+def ProceedExam(request, code, userName):
+    return redirect("get-objquestion", code=code, userName=Name)
+
+
 
 
 @api_view(['POST'])
-def AnswerObJQuestion(request, pk):
+def AnswerObJQuestion(request, pk, userName):
+    score = userDict[userName]['score']
     try:
         uuid_obj = uuid.UUID(pk, version=4)
     except ValueError:
@@ -199,16 +203,16 @@ def AnswerObJQuestion(request, pk):
     option_picked = request.data.get("picked")
 
     if option_picked == obj_question.answer:
-        if 'score' not in request.session:
-            request.session['score'] = 0
-        request.session['score'] += 1
-        request.session.modified = True
+        score.append("correct")
                 
     return redirect("get-objquestion", code=code)
 
 
+
+
 @api_view(['POST'])
-def AnswerTheoryQuestion(request, pk):
+def AnswerTheoryQuestion(request, pk, userName):
+    theoryAnsweredList = userDict[userName]['theoryAnsweredList']
     try:
         theory_question = get_object_or_404(TheoryQuestion, id=pk)
         code = theory_question.owner.code
@@ -216,39 +220,26 @@ def AnswerTheoryQuestion(request, pk):
         answer = {
             theory_question.question: option_picked 
         }
-        if 'theory_questions_answered' not in request.session:
-            request.session['theory_questions_answered'] = []
+      
 
-        theory_questions_answered = request.session['theory_questions_answered']
-        theory_questions_answered.append(answer)
-        request.session['theory_questions_answered'] = theory_questions_answered
-        request.session.modified = True
-
+        
+        theoryAnsweredList.append(answer)
         return redirect("get-theoryquestion", code=code)
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-def submit_answer_exam(request, code):
+def submit_answer_exam(request, code, userName):
+    theoryAnsweredList = userDict[userName]['theoryAnsweredList']
+    score1 = userDict[userName]['score']
+    score = len(score)
     exam = get_object_or_404(Exam, code=code)
-    questiontheory = exam.theoryquestion_set.all()
-    
-    if 'question_answered_theory' not in request.session:
-        request.session['question_answered_theory'] = []
+    email = exam.owner.email
+    uniqueName = userDict[userName]['name"']
+    subject = f"{uniqueName} has finished their exam!"
+    message = f"The score is {score}. Here are the theory questions and answers: {theoryAnsweredList}"
+    sender_email = "phedave05@gmail.com"
+    send_mail(subject, message, sender_email, [email], fail_silently=False)
 
-    question_answered_theory = request.session['question_answered_theory']
-
-    next_question = None
-    for question in questiontheory:
-        if str(question.id) not in question_answered_theory:
-            next_question = question
-            question_answered_theory.append(str(question.id))
-            request.session['question_answered_theory'] = question_answered_theory
-            request.session.modified = True
-            break
-
-    if next_question:
-        serializer = SerializerTheory(instance=next_question)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    else:
-        return Response({"detail": "All theory questions answered"}, status=status.HTTP_204_NO_CONTENT)
+    # Clear session data for this user
+    return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)

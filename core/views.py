@@ -168,61 +168,57 @@ def GetTheoryQuestions(request, code):
 
 @api_view(['POST'])
 def StartExam(request):
-    if request.method == "POST":
-        name_of_user = request.data.get("name")
-        code = request.data.get("code")
-        request.session['name'] = name_of_user
-        request.session['score'] = 0
-        request.session['question_answered_obj'] = []
-        request.session['question_answered_theory'] = []
-        request.session['theory_questions_answered'] = []
-        request.session.modified = True
-        return JsonResponse({"code": code, "userName": name_of_user}, status=200)
+    name_of_user = request.data.get("name")
+    code = request.data.get("code")
+    request.session['name'] = name_of_user
+    request.session['score'] = 0
+    request.session['question_answered_obj'] = []
+    request.session['question_answered_theory'] = []
+    request.session['theory_questions_answered'] = []
+    request.session.modified = True
+    return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
 
 @api_view(['POST'])
 def ProceedExam(request, code):
-    if request.method == "POST":
-        return redirect("get-objquestion", code=code)
+    return redirect("get-objquestion", code=code)
 
 
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
-    if request.method == "POST":
-        try:
-            uuid_obj = uuid.UUID(pk, version=4)
-        except ValueError:
-            return HttpResponse("Invalid UUID format")
-        obj_question = get_object_or_404(QuestionModel, id=uuid_obj)
-        code = obj_question.owner.code
-        option_picked = request.data.get("picked")
-        correct_answer = obj_question.answer
-        if option_picked == obj_question.answer:
-            score = request.session.get('score', 0)
-            request.session['score'] = score + 1
-            request.session.modified = True
+    try:
+        uuid_obj = uuid.UUID(pk, version=4)
+    except ValueError:
+        return HttpResponse("Invalid UUID format")
+    obj_question = get_object_or_404(QuestionModel, id=uuid_obj)
+    code = obj_question.owner.code
+    option_picked = request.data.get("picked")
+    correct_answer = obj_question.answer
+    if option_picked == obj_question.answer:
+        score = request.session.get('score', 0)
+        request.session['score'] = score + 1
+        request.session.modified = True
 
        
                 
-        return redirect("get-objquestion", code=code)
+    return redirect("get-objquestion", code=code)
 
 
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
-    if request.method == "POST":
-        theory_question = get_object_or_404(TheoryQuestion, id=pk)
-        code = theory_question.owner.code
-        option_picked = request.data.get("picked")
-        answer = {
-            theory_question.question: option_picked 
-        }
-        theory_questions_answered = request.session.get('theory_questions_answered', [])
-        theory_questions_answered.append(answer)
-        request.session['theory_questions_answered'] = theory_questions_answered
-        request.session.modified = True
-        facilitator_email = theory_question.owner.owner.email
+    theory_question = get_object_or_404(TheoryQuestion, id=pk)
+    code = theory_question.owner.code
+    option_picked = request.data.get("picked")
+    answer = {
+        theory_question.question: option_picked 
+    }
+    theory_questions_answered = request.session.get('theory_questions_answered', [])
+    theory_questions_answered.append(answer)
+    request.session['theory_questions_answered'] = theory_questions_answered
+    request.session.modified = True
+    facilitator_email = theory_question.owner.owner.email
 
-        return redirect("get-theoryquestion", code=code)
+    return redirect("get-theoryquestion", code=code)
 
 @api_view(['POST'])
 def submit_answer_exam(request, code):

@@ -226,5 +226,6 @@ def submit_answer_exam(request, code):
     Name = [] 
     question_answered_theory = []
     question_answered_obj = []
+    Score = []
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

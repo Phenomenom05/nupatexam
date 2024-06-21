@@ -222,10 +222,6 @@ def submit_answer_exam(request, code):
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 
-    theory_questions_answered = [] 
-    Name = [] 
-    question_answered_theory = []
-    question_answered_obj = []
-    Score = []
+
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

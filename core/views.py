@@ -123,8 +123,12 @@ def GetObJQuestions(request, code):
                 'option3': options[2],
                 'answer': options[3],
             }
+                # Use data argument to pass dictionary
             serializer = SerializerQuestion(data=shuffled_question)
-              # Use data argument to pass dictionary
+              # Update answered questions in session
+            question_answered_obj.append(str(obj_question.id))
+            request.session['question_answered_obj'] = question_answered_obj
+            request.session.modified = True
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -198,11 +202,7 @@ def AnswerObJQuestion(request, pk):
             request.session['score'] = score + 1
             request.session.modified = True
 
-        # Update answered questions in session
-        question_answered_obj = request.session.get('question_answered_obj', [])
-        question_answered_obj.append(str(obj_question.id))
-        request.session['question_answered_obj'] = question_answered_obj
-        request.session.modified = True
+       
                 
         return redirect("get-objquestion", code=code)
 

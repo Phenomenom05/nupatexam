@@ -193,6 +193,7 @@ def AnswerObJQuestion(request, pk):
             score = request.session.get('score', 0)
             request.session['score'] = score + 1
             request.session.modified = True
+            
         return redirect("get-objquestion", code=code)
 
 theory_questions_answered = []
@@ -220,6 +221,10 @@ def submit_answer_exam(request, code):
     message = f"The score is {score} and also this Here are the theory questions and answers: {theory_questions_answered}, {Score}"
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
-        
+
+    theory_questions_answered = [] 
+    Name = [] 
+    question_answered_theory = []
+    question_answered_obj = []
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

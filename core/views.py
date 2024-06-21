@@ -165,7 +165,7 @@ def GetTheoryQuestions(request, code):
 
 
 
-Name = []
+
 @api_view(['POST'])
 def StartExam(request):
     if request.method == "POST":
@@ -185,7 +185,7 @@ def ProceedExam(request, code):
     if request.method == "POST":
         return redirect("get-objquestion", code=code)
 
-Score = []
+
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     if request.method == "POST":

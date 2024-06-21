@@ -105,12 +105,11 @@ def Signout(request):
     logout(request)
     return redirect("signin")
 
-
+question_answered_obj = request.session.get('question_answered_obj', [])
 @api_view(['GET'])
 def GetObJQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
-    question_answered_obj = request.session.get('question_answered_obj', [])
     for question in questionobj:
         if str(question.id) not in question_answered_obj:
             options = [question.option1, question.option2, question.option3, question.answer]
@@ -137,12 +136,11 @@ def GetObJQuestions(request, code):
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 
-
+question_answered_theory = request.session.get('question_answered_theory', [])
 @api_view(['GET'])
 def GetTheoryQuestions(request, code):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
-    question_answered_theory = request.session.get('question_answered_theory', [])
     # Assuming question_answered_theor is stored somewhere (session, database, etc.)
     # Ensure it's initialized and accessible across requests
 
@@ -180,6 +178,7 @@ def ProceedExam(request, code):
     return redirect("get-objquestion", code=code)
 
 
+score = request.session.get('score', 0)
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk):
     try:
@@ -191,7 +190,6 @@ def AnswerObJQuestion(request, pk):
     option_picked = request.data.get("picked")
     correct_answer = obj_question.answer
     if option_picked == obj_question.answer:
-        score = request.session.get('score', 0)
         request.session['score'] = score + 1
         request.session.modified = True
 
@@ -200,6 +198,7 @@ def AnswerObJQuestion(request, pk):
     return redirect("get-objquestion", code=code)
 
 
+theory_questions_answered = request.session.get('theory_questions_answered', [])
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk):
     theory_question = get_object_or_404(TheoryQuestion, id=pk)
@@ -208,7 +207,6 @@ def AnswerTheoryQuestion(request, pk):
     answer = {
         theory_question.question: option_picked 
     }
-    theory_questions_answered = request.session.get('theory_questions_answered', [])
     theory_questions_answered.append(answer)
     request.session['theory_questions_answered'] = theory_questions_answered
     request.session.modified = True

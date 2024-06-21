@@ -171,10 +171,6 @@ def StartExam(request):
     name_of_user = request.data.get("name")
     code = request.data.get("code")
     request.session['name'] = name_of_user
-    request.session['score'] = 0
-    request.session['question_answered_obj'] = []
-    request.session['question_answered_theory'] = []
-    request.session['theory_questions_answered'] = []
     request.session.modified = True
     return JsonResponse({"code": code, "userName": name_of_user}, status=200)
 
@@ -225,7 +221,7 @@ def submit_answer_exam(request, code):
     score = request.session.get('score', 0)
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
-    uniqueName = request.session.get('name', 'Student')
+    uniqueName = request.session.get('name')
     theory_questions_answered = request.session.get('theory_questions_answered', [])
     
     subject = f"{uniqueName} has finished their exam!"
@@ -234,7 +230,11 @@ def submit_answer_exam(request, code):
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 
     # Clear session data for this user
-    request.session.flush()
+    request.session['score'] = 0
+    request.session['question_answered_obj'] = []
+    request.session['question_answered_theory'] = []
+    request.session['theory_questions_answered'] = []
+    request.session['name'] = ''
     
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

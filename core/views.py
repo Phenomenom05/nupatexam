@@ -131,7 +131,7 @@ def GetObJQuestions(request, code):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
            
-    
+    question_answered_obj = []
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 
@@ -156,6 +156,7 @@ def GetTheoryQuestions(request, code):
         serializer = SerializerTheory(instance=next_question)
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
+        question_answered_theory = []
         return Response({"detail": "All questions answered"}, status=status.HTTP_200_OK)
 
 
@@ -222,6 +223,8 @@ def submit_answer_exam(request, code):
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 
-
+    Name = []
+    Score = []
+    theory_questions_answered = []
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)
     

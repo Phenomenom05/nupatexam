@@ -126,7 +126,7 @@ def GetObJQuestions(request, code):
                 # Use data argument to pass dictionary
             serializer = SerializerQuestion(data=shuffled_question)
               # Update answered questions in session
-            question_answered_obj.append(str(obj_question.id))
+            question_answered_obj.append(str(question.id))
             request.session['question_answered_obj'] = question_answered_obj
             request.session.modified = True
             if serializer.is_valid():

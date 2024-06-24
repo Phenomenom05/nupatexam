@@ -185,7 +185,7 @@ def StartExam(request):
 
 @api_view(['POST'])
 def ProceedExam(request, code, userName):
-    return redirect("get-objquestion", code=code, userName=Name)
+    return redirect("get-objquestion", code=code, name=userName)
 
 
 
@@ -205,7 +205,7 @@ def AnswerObJQuestion(request, pk, userName):
     if option_picked == obj_question.answer:
         score.append("correct")
                 
-    return redirect("get-objquestion", code=code)
+    return redirect("get-objquestion", code=code, name=userName)
 
 
 
@@ -224,7 +224,7 @@ def AnswerTheoryQuestion(request, pk, userName):
 
         
         theoryAnsweredList.append(answer)
-        return redirect("get-theoryquestion", code=code)
+        return redirect("get-theoryquestion", code=code, name=userName)
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

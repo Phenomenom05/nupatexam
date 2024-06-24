@@ -22,7 +22,11 @@ class CheckView(CreateAPIView):
 @api_view(['POST'])
 def CreateQuestion(request, exam_id):
     try:
-        exam = Exam.objects.get(id=exam_id)
+        uuid_obj = uuid.UUID(exam_id, version=4)
+    except ValueError:
+        return JsonResponse({"detail": "Invalid UUID format"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        exam = Exam.objects.get(id=uuid_obj)
     except Exam.DoesNotExist:
         return Response({"detail": "Exam not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -37,7 +41,11 @@ def CreateQuestion(request, exam_id):
 @api_view(['POST'])
 def CreateTheory(request, exam_id):
     try:
-        exam = Exam.objects.get(id=exam_id)
+        uuid_obj = uuid.UUID(exam_id, version=4)
+    except ValueError:
+        return JsonResponse({"detail": "Invalid UUID format"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        exam = Exam.objects.get(id=uuid_obj)
     except Exam.DoesNotExist:
         return Response({"detail": "Exam not found."}, status=status.HTTP_404_NOT_FOUND)
     

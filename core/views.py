@@ -176,7 +176,8 @@ def StartExam(request):
 
 @api_view(['POST'])
 def ProceedExam(request, code, userName):
-    return JsonResponse({"detail": "Proceeding to next question"}, status=status.HTTP_200_OK)
+    return redirect("get-objquestion", code=code, userName=userName)
+
 
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk, userName):

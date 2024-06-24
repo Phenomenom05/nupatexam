@@ -3,13 +3,12 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework import status
-from django.shortcuts import redirect, get_object_or_404, HttpResponse
+from django.shortcuts import redirect, get_object_or_404
 from rest_framework.decorators import api_view
 from .models import QuestionModel, Exam, Profile, TheoryQuestion
 from .serializers import SerializerQuestion, SerializerExam, SerializerCreateAccount, SerializerTheory
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.http import JsonResponse
 from random import shuffle
 import uuid
 
@@ -111,8 +110,9 @@ userDict = {}
 def GetObJQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
+    if userName not in userDict:
+        userDict[userName] = {'objList': [], 'theoryList': [], 'theoryAnsweredList': [], "name": userName, 'score': []}
     objList = userDict[userName]['objList']
-    
 
     for question in questionobj:
         if str(question.id) not in objList:
@@ -127,7 +127,6 @@ def GetObJQuestions(request, code, userName):
                 'answer': options[3],
             }
 
-            # Serialize and return the shuffled question
             serializer = SerializerQuestion(data=shuffled_question)
             objList.append(str(question.id))
             if serializer.is_valid():
@@ -141,9 +140,9 @@ def GetObJQuestions(request, code, userName):
 def GetTheoryQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
+    if userName not in userDict:
+        userDict[userName] = {'objList': [], 'theoryList': [], 'theoryAnsweredList': [], "name": userName, 'score': []}
     theoryList =  userDict[userName]['theoryList']
-    # Assuming question_answered_theor is stored somewhere (session, database, etc.)
-    # Ensure it's initialized and accessible across requests
 
     next_question = None
     for question in questiontheory:
@@ -153,45 +152,36 @@ def GetTheoryQuestions(request, code, userName):
             break
 
     if next_question:
-        # If there's a next question, serialize it and return
         serializer = SerializerTheory(instance=next_question)
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response({"detail": "All questions answered"}, status=status.HTTP_200_OK)
 
-
-
-
-
-Name = ''
-
 @api_view(['POST'])
 def StartExam(request):
-    name_of_user = request.data.get("userName")
+    userName = request.data.get("userName")
     code = request.data.get("code")
-    userName = name_of_user
-    addUser = {
-        userName:{
-            'objList': [],
-            'theoryList': [],
-            'theoryAnsweredList': [],
-            "name": userName,
-            'score': []
+    if userName not in userDict:
+        addUser = {
+            userName:{
+                'objList': [],
+                'theoryList': [],
+                'theoryAnsweredList': [],
+                "name": userName,
+                'score': []
+            }
         }
-    }
-    userDict.update(addUser)
+        userDict.update(addUser)
     return JsonResponse({"code": code, "userName": userName}, status=200)
-
 
 @api_view(['POST'])
 def ProceedExam(request, code, userName):
-    return redirect("get-objquestion", code=code, userName=userName)
-
-
-
+    return JsonResponse({"detail": "Proceeding to next question"}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def AnswerObJQuestion(request, pk, userName):
+    if userName not in userDict:
+        return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     score = userDict[userName]['score']
     try:
         uuid_obj = uuid.UUID(pk, version=4)
@@ -207,11 +197,10 @@ def AnswerObJQuestion(request, pk, userName):
                 
     return redirect("get-objquestion", code=code, userName=userName)
 
-
-
-
 @api_view(['POST'])
 def AnswerTheoryQuestion(request, pk, userName):
+    if userName not in userDict:
+        return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     theoryAnsweredList = userDict[userName]['theoryAnsweredList']
     try:
         theory_question = get_object_or_404(TheoryQuestion, id=pk)
@@ -220,8 +209,6 @@ def AnswerTheoryQuestion(request, pk, userName):
         answer = {
             theory_question.question: option_picked 
         }
-      
-
         
         theoryAnsweredList.append(answer)
         return redirect("get-theoryquestion", code=code, userName=userName)
@@ -230,16 +217,16 @@ def AnswerTheoryQuestion(request, pk, userName):
 
 @api_view(['POST'])
 def submit_answer_exam(request, code, userName):
+    if userName not in userDict:
+        return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     theoryAnsweredList = userDict[userName]['theoryAnsweredList']
-    score1 = userDict[userName]['score']
-    score = len(score)
+    score = userDict[userName]['score']
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
-    uniqueName = userDict[userName]['name"']
+    uniqueName = userDict[userName]['name']
     subject = f"{uniqueName} has finished their exam!"
-    message = f"The score is {score}. Here are the theory questions and answers: {theoryAnsweredList}"
+    message = f"The score is {len(score)}. Here are the theory questions and answers: {theoryAnsweredList}"
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 
-    # Clear session data for this user
     return Response({"detail": "Exam submitted and code sent successfully"}, status=status.HTTP_200_OK)

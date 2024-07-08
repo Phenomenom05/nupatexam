@@ -87,7 +87,8 @@ def CreateAccount(request):
     if request.method == "POST":
         serializer = SerializerCreateAccount(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            Profile.objects.create(user=user)  # Ensure a profile is created
             return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,7 +104,6 @@ def Signin(request):
             return Response({"Details": "Login Successful"}, status=status.HTTP_200_OK)
         else:
             return Response({"Details": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
     return Response({"Details": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @login_required

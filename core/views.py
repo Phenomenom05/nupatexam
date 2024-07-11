@@ -87,15 +87,20 @@ def CreateAccount(request):
     if request.method == "POST":
         serializer = SerializerCreateAccount(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            print(f"User created: {user.username} (ID: {user.id})")  # Logging user creation
             try:
-                Profile.objects.create(user=user)  # Ensure a profile is created
-                print(f"Profile created for {user.username}")
-            except Exception as e:
-                print(f"Error creating profile for {user.username}: {str(e)}")
-                return Response({"detail": "Error creating profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
+                with transaction.atomic():
+                    user = serializer.save()
+                    print(f"User created: {user.username} (ID: {user.id})")
+                    profile, created = Profile.objects.get_or_create(user=user)
+                    if created:
+                        print(f"Profile created for {user.username}")
+                    else:
+                        print(f"Profile already exists for {user.username}")
+                    
+                    return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
+            except IntegrityError as e:
+                print(f"IntegrityError creating user or profile: {str(e)}")
+                return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['POST'])
 def Signin(request):

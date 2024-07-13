@@ -15,6 +15,7 @@ import logging
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
 class CheckView(CreateAPIView): 
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
@@ -103,8 +104,7 @@ def CreateAccount(request):
                 return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.error(f"Serializer errors: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def Signin(request):

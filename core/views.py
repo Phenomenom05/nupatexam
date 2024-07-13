@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from rest_framework import status
-from django.shortcuts import redirect, get_object_or_404
 from rest_framework.decorators import api_view
 from .models import QuestionModel, Exam, Profile, TheoryQuestion
 from .serializers import SerializerQuestion, SerializerExam, SerializerCreateAccount, SerializerTheory
@@ -12,9 +11,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from random import shuffle
 import uuid
+import logging
 
 User = get_user_model()
-
+logger = logging.getLogger(__name__)
 class CheckView(CreateAPIView): 
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
@@ -91,18 +91,21 @@ def CreateAccount(request):
             try:
                 with transaction.atomic():
                     user = serializer.save()
-                    print(f"User created: {user.username} (ID: {user.id})")
+                    logger.info(f"User created: {user.username} (ID: {user.id})")
                     profile, created = Profile.objects.get_or_create(user=user)
                     if created:
-                        print(f"Profile created for {user.username}")
+                        logger.info(f"Profile created for {user.username}")
                     else:
-                        print(f"Profile already exists for {user.username}")
-                    
+                        logger.info(f"Profile already exists for {user.username}")
                     return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
             except IntegrityError as e:
-                print(f"IntegrityError creating user or profile: {str(e)}")
+                logger.error(f"IntegrityError creating user or profile: {str(e)}")
                 return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            logger.error(f"Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 def Signin(request):
     if request.method == 'POST':

@@ -107,14 +107,14 @@ DEFAULT_FROM_EMAIL = 'phedave05@gmail.com'  # Your default email address
 
 
 # Use database-backed sessions
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# Set session cookie settings
-SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_AGE = 1209600  # Two weeks, in seconds
-SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser is closed
-SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+# # Set session cookie settings
+# SESSION_COOKIE_NAME = 'sessionid'
+# SESSION_COOKIE_AGE = 1209600  # Two weeks, in seconds
+# SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser is closed
+# SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
 
 
 

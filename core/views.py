@@ -16,7 +16,7 @@ import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-class CheckView(CreateAPIView): 
+class CheckView(CreateAPIView):
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
 
@@ -42,7 +42,6 @@ def CreateQuestion(request, exam_id):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving question: {str(e)}")
-                transaction.rollback()
                 return Response({"detail": "Error saving question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -57,7 +56,7 @@ def CreateTheory(request, exam_id):
         exam = Exam.objects.get(id=uuid_obj)
     except Exam.DoesNotExist:
         return Response({"detail": "Exam not found."}, status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == "POST":
         serializer = SerializerTheory(data=request.data)
         if serializer.is_valid():
@@ -97,12 +96,12 @@ def submit_exam(request, exam_id):
     user_email = exam.owner.email
     name = exam.owner.name
     code = exam.code
-    
+
     subject = f"{name}, you have successfully created your exam questions!"
     message = f"The exam code for {exam.name} is {code}. Share this code with your students so they can take the exam."
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [user_email], fail_silently=False)
-    
+
     return JsonResponse({"detail": "Exam submitted and code sent successfully"}, status=200)
 
 @api_view(['POST'])
@@ -112,19 +111,10 @@ def CreateAccount(request):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    user = serializer.save()
-                    profile = Profile.objects.create(user=user)
-                    logger.info(f"User created: {user.username} (ID: {user.id})")
-                    logger.info(f"Profile created for {user.username}")
-                    transaction.commit()
+                    serializer.save()
                 return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
-            except IntegrityError as e:
-                logger.error(f"IntegrityError creating user or profile: {str(e)}")
-                transaction.rollback()
-                return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
                 logger.exception(f"Unexpected error creating user or profile: {str(e)}")
-                transaction.rollback()
                 return Response({"detail": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.error(f"Serializer errors: {serializer.errors}")
@@ -180,7 +170,7 @@ def GetObJQuestions(request, code, userName):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
@@ -242,7 +232,7 @@ def AnswerObJQuestion(request, pk, userName):
 
     if option_picked == obj_question.answer:
         score.append("correct")
-                
+
     return redirect("get-objquestion", code=code, userName=userName)
 
 @api_view(['POST'])
@@ -255,9 +245,9 @@ def AnswerTheoryQuestion(request, pk, userName):
         code = theory_question.owner.code
         option_picked = request.data.get("picked")
         answer = {
-            theory_question.question: option_picked 
+            theory_question.question: option_picked
         }
-        
+
         theoryAnsweredList.append(answer)
         return redirect("get-theoryquestion", code=code, userName=userName)
     except Exception as e:

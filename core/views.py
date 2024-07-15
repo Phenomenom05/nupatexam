@@ -90,18 +90,18 @@ def CreateAccount(request):
         serializer = SerializerCreateAccount(data=request.data)
         if serializer.is_valid():
             try:
-                with transaction.atomic():
+                 with transaction.atomic():
                     user = serializer.save()
+                    profile = Profile.objects.create(user=user)
                     logger.info(f"User created: {user.username} (ID: {user.id})")
-                    profile, created = Profile.objects.get_or_create(user=user)
-                    if created:
-                        logger.info(f"Profile created for {user.username}")
-                    else:
-                        logger.info(f"Profile already exists for {user.username}")
+                    logger.info(f"Profile created for {user.username}")
                     return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
             except IntegrityError as e:
                 logger.error(f"IntegrityError creating user or profile: {str(e)}")
                 return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                logger.exception(f"Unexpected error creating user or profile: {str(e)}")
+                return Response({"detail": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.error(f"Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -61,16 +61,16 @@ class QuestionModel(models.Model):
     
 
 
-def CreateProfile(sender, instance, created, **Kwargs):
-    if created:
-        user = instance
-        profile = Profile.objects.create(
-            user = user,
-            name = user.first_name,
-            username=user.username,
-            email=user.email
-        )
+# def CreateProfile(sender, instance, created, **Kwargs):
+#     if created:
+#         user = instance
+#         profile = Profile.objects.create(
+#             user = user,
+#             name = user.first_name,
+#             username=user.username,
+#             email=user.email
+#         )
 
 
 
-post_save.connect(CreateProfile, sender=User)
+# post_save.connect(CreateProfile, sender=User)

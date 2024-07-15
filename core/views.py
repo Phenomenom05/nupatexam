@@ -38,11 +38,11 @@ def CreateQuestion(request, exam_id):
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                    transaction.commit()
+                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving question: {str(e)}")
-                transaction.rollback()
+               
                 return Response({"detail": "Error saving question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,11 +64,11 @@ def CreateTheory(request, exam_id):
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                    transaction.commit()
+                   
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving theory question: {str(e)}")
-                transaction.rollback()
+                
                 return Response({"detail": "Error saving theory question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -82,11 +82,11 @@ def CreateExam(request):
             try:
                 with transaction.atomic():
                     exam = serializer.save(owner=profile)
-                    transaction.commit()
+                 
                 return Response({"examId": str(exam.id)}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error creating exam: {str(e)}")
-                transaction.rollback()
+               
                 return Response({"detail": "Error creating exam"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -112,23 +112,25 @@ def CreateAccount(request):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    user = serializer.save()  # Save user first
-
+                    user = serializer.save()
+                    profile = Profile.objects.create(
+                        user=user,
+                        name=user.first_name,
+                        username=user.username,
+                        email=user.email
+                    )
                     logger.info(f"User created: {user.username} (ID: {user.id})")
-                    
+                    logger.info(f"Profile created for {user.username}")
                 return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
             except IntegrityError as e:
-                logger.error(f"IntegrityError creating user: {str(e)}")
-                return Response({"detail": "Error creating user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                logger.error(f"IntegrityError creating user or profile: {str(e)}")
+                return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
-                logger.exception(f"Unexpected error creating user: {str(e)}")
+                logger.exception(f"Unexpected error creating user or profile: {str(e)}")
                 return Response({"detail": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.error(f"Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response({"detail": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 @api_view(['POST'])
 def Signin(request):

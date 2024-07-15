@@ -113,7 +113,6 @@ def CreateAccount(request):
             try:
                 with transaction.atomic():
                     user = serializer.save()
-                    profile = Profile.objects.create(user=user)
                     logger.info(f"User created: {user.username} (ID: {user.id})")
                     logger.info(f"Profile created for {user.username}")
                     transaction.commit()

@@ -12,7 +12,7 @@ class Profile(models.Model):
     email = models.EmailField(null=True, blank=True)
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
-      
+
 
 
 class Exam(models.Model):
@@ -44,7 +44,7 @@ class TheoryQuestion(models.Model):
 
     def __str__(self):
         return self.question
-    
+
 
 
 class QuestionModel(models.Model):
@@ -58,19 +58,7 @@ class QuestionModel(models.Model):
 
     def __str__(self):
         return self.question
-    
-
-
-def CreateProfile(sender, instance, created, **Kwargs):
-    if created:
-        user = instance
-        profile = Profile.objects.create(
-            user = user,
-            name = user.first_name,
-            username=user.username,
-            email=user.email
-        )
 
 
 
-post_save.connect(CreateProfile, sender=User)
+

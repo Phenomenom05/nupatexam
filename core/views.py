@@ -12,6 +12,8 @@ from django.core.mail import send_mail
 from random import shuffle
 import uuid
 import logging
+from django.db import DatabaseError
+from django.contrib.auth.models import User
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -38,10 +40,11 @@ def CreateQuestion(request, exam_id):
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                    transaction.commit()
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving question: {str(e)}")
+
                 return Response({"detail": "Error saving question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -63,11 +66,11 @@ def CreateTheory(request, exam_id):
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                    transaction.commit()
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving theory question: {str(e)}")
-                transaction.rollback()
+
                 return Response({"detail": "Error saving theory question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -76,18 +79,20 @@ def CreateTheory(request, exam_id):
 def CreateExam(request):
     if request.method == "POST":
         profile = request.user.profile
+        logger.debug(f"Profile: {profile}")
         serializer = SerializerExam(data=request.data)
         if serializer.is_valid():
             try:
                 with transaction.atomic():
                     exam = serializer.save(owner=profile)
-                    transaction.commit()
+                logger.info(f"Exam created: {exam}")
                 return Response({"examId": str(exam.id)}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error creating exam: {str(e)}")
-                transaction.rollback()
                 return Response({"detail": "Error creating exam"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @login_required
 @api_view(['POST'])
@@ -111,17 +116,46 @@ def CreateAccount(request):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    serializer.save()
+                    user = serializer.save()
+                    logger.info(f"User created: {user.username} (ID: {user.id})")
+                    profile = Profile.objects.create(
+                        user=user,
+                        name=user.first_name,
+                        username=user.username,
+                        email=user.email
+                    )
+                    logger.info(f"Profile created for {user.username}")
+
+                # Manual checks to ensure the user and profile are saved in the database
+                user_check = User.objects.filter(username=user.username).first()
+                if user_check:
+                    logger.info(f"Manual check: User {user_check.username} exists in the database.")
+                else:
+                    logger.error(f"Manual check: User {user.username} does NOT exist in the database.")
+
+                profile_check = Profile.objects.filter(user=user_check).first()
+                if profile_check:
+                    logger.info(f"Manual check: Profile for {user_check.username} exists in the database.")
+                else:
+                    logger.error(f"Manual check: Profile for {user.username} does NOT exist in the database.")
+
                 return Response({"detail": "User created successfully"}, status=status.HTTP_201_CREATED)
+            except IntegrityError as e:
+                logger.error(f"IntegrityError creating user or profile: {str(e)}")
+                return Response({"detail": "Error creating user or profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except DatabaseError as e:
+                logger.error(f"DatabaseError: {str(e)}")
+                return Response({"detail": "Database error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
                 logger.exception(f"Unexpected error creating user or profile: {str(e)}")
                 return Response({"detail": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.error(f"Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"detail": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def Signin(request):
     if request.method == 'POST':
         username = request.data.get("username")
@@ -133,7 +167,12 @@ def Signin(request):
             return Response({"Details": "Login Successful"}, status=status.HTTP_200_OK)
         else:
             return Response({"Details": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    elif request.method == 'GET':
+        # Handle GET request to display login form or other information
+        return Response({"Details": "Please log in."}, status=status.HTTP_200_OK)
+
     return Response({"Details": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 @login_required
 @api_view(['POST'])

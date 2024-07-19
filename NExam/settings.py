@@ -175,6 +175,33 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# settings.py
+LOGIN_URL = '/signin/'  # Replace '/signin/' with your actual login URL
+
+# Use database-backed sessions
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Set session cookie settings
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_AGE = 1209600  # Two weeks, in seconds
+SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser is closed
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
+
+
+# settings.py
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to access CSRF cookie
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+
 
 LOGGING = {
     'version': 1,

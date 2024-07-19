@@ -1,13 +1,13 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from rest_framework.response import Response
 from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.decorators import api_view
 from .models import QuestionModel, Exam, Profile, TheoryQuestion
 from .serializers import SerializerQuestion, SerializerExam, SerializerCreateAccount, SerializerTheory
-from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from random import shuffle
 import uuid
@@ -20,8 +20,8 @@ class CheckView(CreateAPIView):
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
 
-@login_required
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def CreateQuestion(request, exam_id):
     try:
         uuid_obj = uuid.UUID(exam_id, version=4)
@@ -46,8 +46,9 @@ def CreateQuestion(request, exam_id):
                 return Response({"detail": "Error saving question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@login_required
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def CreateTheory(request, exam_id):
     try:
         uuid_obj = uuid.UUID(exam_id, version=4)
@@ -72,8 +73,9 @@ def CreateTheory(request, exam_id):
                 return Response({"detail": "Error saving theory question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@login_required
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def CreateExam(request):
     if request.method == "POST":
         profile = request.user.profile
@@ -90,8 +92,9 @@ def CreateExam(request):
                 return Response({"detail": "Error creating exam"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@login_required
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     user_email = exam.owner.email
@@ -141,17 +144,21 @@ def Signin(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
-            return Response({"Details": "Login Successful"}, status=status.HTTP_200_OK)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "Details": "Login Successful",
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"Details": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     return Response({"Details": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-@login_required
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def Signout(request):
     logout(request)
-    return redirect("signin")
-
+    return Response({"Details": "Logout Successful"}, status=status.HTTP_200_OK)
 userDict = {}
 
 @api_view(['GET'])

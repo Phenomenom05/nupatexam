@@ -1,7 +1,15 @@
 from django.urls import path
 from .views import *
-
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 urlpatterns = [
+    # JWT token endpoints
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Your existing URLs
     path('', CheckView.as_view(), name="home"),
     path("create-question/<str:exam_id>/", CreateQuestion, name="create-question"),
     path("create-theoryquestion/<str:exam_id>/", CreateTheory, name="create-theoryquestion"),
@@ -16,5 +24,5 @@ urlpatterns = [
     path("answer-theoryquestion/<str:pk>/<str:userName>/", AnswerTheoryQuestion, name="answer-theoryquestion"),
     path("submit-exam/<str:exam_id>/", submit_exam, name="submit-exam"),
     path("submit-answer-exam/<str:code>/<str:userName>/", submit_answer_exam, name="submit_answer_exam"),
-    path("proceed-exam/<str:code>/<str:userName>/", ProceedExam, name="proceed-exam")
+    path("proceed-exam/<str:code>/<str:userName>/", ProceedExam, name="proceed-exam"),
 ]

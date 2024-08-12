@@ -82,7 +82,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 
-ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', '127.0.0.1', 'nupat-facilitators.vercel.app']
+ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', 'nupatexam.vercel.app'  '127.0.0.1', 'nupat-facilitators.vercel.app']
 
 ROOT_URLCONF = 'NExam.urls'
 

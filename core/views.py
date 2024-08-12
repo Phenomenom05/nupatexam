@@ -1,4 +1,7 @@
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
+from rest_framework.generics import CreateAPIView
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -16,7 +19,7 @@ import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-class CheckView(CreateAPIView): 
+class CheckView(CreateAPIView):
     queryset = QuestionModel.objects.all()
     serializer_class = SerializerQuestion
 
@@ -38,11 +41,11 @@ def CreateQuestion(request, exam_id):
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                 
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving question: {str(e)}")
-               
+
                 return Response({"detail": "Error saving question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,18 +61,18 @@ def CreateTheory(request, exam_id):
         exam = Exam.objects.get(id=uuid_obj)
     except Exam.DoesNotExist:
         return Response({"detail": "Exam not found."}, status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == "POST":
         serializer = SerializerTheory(data=request.data)
         if serializer.is_valid():
             try:
                 with transaction.atomic():
                     serializer.save(owner=exam)
-                   
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error saving theory question: {str(e)}")
-                
+
                 return Response({"detail": "Error saving theory question"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,11 +87,11 @@ def CreateExam(request):
             try:
                 with transaction.atomic():
                     exam = serializer.save(owner=profile)
-                 
+
                 return Response({"examId": str(exam.id)}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 logger.error(f"Error creating exam: {str(e)}")
-               
+
                 return Response({"detail": "Error creating exam"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -100,15 +103,16 @@ def submit_exam(request, exam_id):
     user_email = exam.owner.email
     name = exam.owner.name
     code = exam.code
-    
+
     subject = f"{name}, you have successfully created your exam questions!"
     message = f"The exam code for {exam.name} is {code}. Share this code with your students so they can take the exam."
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [user_email], fail_silently=False)
-    
+
     return JsonResponse({"detail": "Exam submitted and code sent successfully"}, status=200)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def CreateAccount(request):
     if request.method == "POST":
         serializer = SerializerCreateAccount(data=request.data)
@@ -136,6 +140,7 @@ def CreateAccount(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def Signin(request):
     if request.method == 'POST':
         username = request.data.get("username")
@@ -162,6 +167,7 @@ def Signout(request):
 userDict = {}
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def GetObJQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questionobj = exam.questionmodel_set.all()
@@ -174,24 +180,25 @@ def GetObJQuestions(request, code, userName):
             options = [question.option1, question.option2, question.option3, question.answer]
             shuffle(options)
             shuffled_question = {
-                'id': str(question.id),
                 'question': question.question,
                 'option1': options[0],
+                'id': str(question.id),
                 'option2': options[1],
                 'option3': options[2],
                 'answer': options[3],
+                'owner': exam.id
             }
 
             serializer = SerializerQuestion(data=shuffled_question)
             objList.append(str(question.id))
             if serializer.is_valid():
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(shuffled_question, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
     return Response({'detail': 'No more objective questions'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def GetTheoryQuestions(request, code, userName):
     exam = get_object_or_404(Exam, code=code)
     questiontheory = exam.theoryquestion_set.all()
@@ -213,6 +220,7 @@ def GetTheoryQuestions(request, code, userName):
         return Response({"detail": "All questions answered"}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def StartExam(request):
     userName = request.data.get("userName")
     code = request.data.get("code")
@@ -227,14 +235,18 @@ def StartExam(request):
             }
         }
         userDict.update(addUser)
-    return JsonResponse({"code": code, "userName": userName}, status=200)
+    return JsonResponse({"code": code, "userName": userName, "po" :userDict}, status=200)
+
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def ProceedExam(request, code, userName):
-    return redirect("get-objquestion", code=code, userName=userName)
+    redirect_url = f"/get-objquestion/{code}/{userName}"
+    return Response({"redirect_url": redirect_url}, status=200)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def AnswerObJQuestion(request, pk, userName):
     if userName not in userDict:
         return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -250,10 +262,12 @@ def AnswerObJQuestion(request, pk, userName):
 
     if option_picked == obj_question.answer:
         score.append("correct")
-                
-    return redirect("get-objquestion", code=code, userName=userName)
+
+    # return redirect("get-objquestion", code=code, userName=userName)
+    return JsonResponse({"status": "success", "next_url": f"/get-objquestion/{code}/{userName}", "option": score}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def AnswerTheoryQuestion(request, pk, userName):
     if userName not in userDict:
         return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -263,25 +277,27 @@ def AnswerTheoryQuestion(request, pk, userName):
         code = theory_question.owner.code
         option_picked = request.data.get("picked")
         answer = {
-            theory_question.question: option_picked 
+            theory_question.question: option_picked
         }
-        
+
         theoryAnsweredList.append(answer)
-        return redirect("get-theoryquestion", code=code, userName=userName)
+        return JsonResponse({"detail": "Answer submitted successfully", "code": code, "userName": userName}, status=status.HTTP_200_OK)
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def submit_answer_exam(request, code, userName):
     if userName not in userDict:
         return JsonResponse({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     theoryAnsweredList = userDict[userName]['theoryAnsweredList']
     score = userDict[userName]['score']
+    score_cal = len(score)
     exam = get_object_or_404(Exam, code=code)
     email = exam.owner.email
     uniqueName = userDict[userName]['name']
     subject = f"{uniqueName} has finished their exam!"
-    message = f"The score is {len(score)}. Here are the theory questions and answers: {theoryAnsweredList}"
+    message = f"The score is {score_cal}. Here are the theory questions and answers: {theoryAnsweredList}"
     sender_email = "phedave05@gmail.com"
     send_mail(subject, message, sender_email, [email], fail_silently=False)
 

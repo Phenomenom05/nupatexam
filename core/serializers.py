@@ -18,7 +18,7 @@ class SerializerTheory(serializers.ModelSerializer):
     class Meta:
         model = TheoryQuestion
         fields ='__all__'
-        
+
 
 
 class SerializerCreateAccount(serializers.ModelSerializer):

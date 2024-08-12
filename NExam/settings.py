@@ -67,17 +67,22 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
+
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'http://192.168.8.101:5173',  # Your friend's local IP address
+    'http://192.168.8.101:5173',
     'http://davidphenom.pythonanywhere.com',
+    'https://nupat-facilitators.vercel.app',
 ]
 
-ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', '127.0.0.1']
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+
+ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', '127.0.0.1', 'nupat-facilitators.vercel.app']
 
 ROOT_URLCONF = 'NExam.urls'
 

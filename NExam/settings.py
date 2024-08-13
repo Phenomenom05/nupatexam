@@ -150,12 +150,35 @@ LOGGING = {
 WSGI_APPLICATION = 'NExam.wsgi.application'
 
 # Database configuration
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',  # or 'django.db.backends.mysql'
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'ZtdAxDoDxWIHMZELwBDcmzIqQLmevzEh',
+        'HOST': 'viaduct.proxy.rlwy.net',
+        'PORT': '34662',  # Correct port number
     }
 }
+
+# import dj_database_url
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default="postgresql://postgres:ZtdAxDoDxWIHMZELwBDcmzIqQLmevzEh@viaduct.proxy.rlwy.net:34662/railway"
+#     )
+# }
+
+
+
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

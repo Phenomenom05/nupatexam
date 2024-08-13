@@ -1,22 +1,10 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "manage.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "NExam/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb"
-      }
-    }
+    { "src": "NExam/wsgi.py", "use": "@vercel/python" },
+    { "src": "NExam/settings.py", "use": "@vercel/python" }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "NExam/wsgi.py"
-    }
+    { "src": "/(.*)", "dest": "NExam/wsgi.py" }
   ]
 }

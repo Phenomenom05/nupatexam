@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-2a_252%j2hx_tv+(acwh+4r&hg9tqe&&vl4b2-g_7h6$$34cam
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-
+ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', 'nupatexam.vercel.app', '127.0.0.1', 'nupat-facilitators.vercel.app']
 # Application definition
 
 INSTALLED_APPS = [
@@ -68,21 +68,18 @@ SIMPLE_JWT = {
 }
 
 
+#
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',
+#     'http://localhost:5173',
+#     'http://192.168.8.101:5173',
+#     'http://davidphenom.pythonanywhere.com',
+#     'https://nupat-facilitators.vercel.app',
+# ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://192.168.8.101:5173',
-    'http://davidphenom.pythonanywhere.com',
-    'https://nupat-facilitators.vercel.app',
-]
 
-
-
-CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
-
-ALLOWED_HOSTS = ['localhost', 'davidphenom.pythonanywhere.com', 'nupatexam.vercel.app'  '127.0.0.1', 'nupat-facilitators.vercel.app']
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'NExam.urls'
 
